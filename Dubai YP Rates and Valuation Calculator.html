@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dubai Real Estate Valuation Tool 2025</title>
+    <!-- Tailwind CSS for responsiveness -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Application Structure Plan: 
+         1. Hero Section: Sets the context of Dubai's diverse market.
+         2. Market Segment Explorer: Tab-like interface for property types and community data (Mobile optimized with scrollable tabs).
+         3. Advanced Valuation Calculator (IVS/RICS): 
+            - Auto-populates yield based on property type.
+            - Handles comma formatting for AED inputs.
+            - Includes 'General Outgoings %' and specific line items.
+         Rationale: Using 'index.html' ensures immediate loading on GitHub Pages.
+    -->
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fdfaf6; color: #334155; }
+        
+        /* Chart Container Responsiveness */
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            height: 250px; 
+            max-height: 400px; 
+        } 
+        @media (min-width: 768px) { 
+            .chart-container { height: 350px; } 
+        }
+
+        /* Tab Styles */
+        .active-tab {
+            background-color: #d6d3d1; /* Stone-300 */
+            border-bottom: 3px solid #b45309; /* Amber-700 */
+            font-weight: 700;
+            color: #1c1917 !important;
+        }
+        
+        /* Interactive Elements */
+        .driver-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        /* Table Styling */
+        table { border-collapse: separate; border-spacing: 0; width: 100%; }
+        th { text-align: left; padding: 12px; border-bottom: 2px solid #e7e5e4; font-size: 0.875rem; color: #57534e; white-space: nowrap; }
+        td { padding: 12px; border-bottom: 1px solid #f5f5f4; font-size: 0.875rem; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: #fafaf9; }
+        
+        /* Input Focus Styles */
+        input:focus { outline: 2px solid #b45309; outline-offset: 1px; }
+        select:focus { outline: 2px solid #b45309; outline-offset: 1px; }
+
+        /* Smooth Scrolling */
+        html { scroll-behavior: smooth; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-stone-900 text-stone-100 py-6 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold tracking-wide">DUBAI RE VALUATION</h1>
+                <p class="text-xs md:text-sm text-stone-400">Yield Analysis & IVS Calculator</p>
+            </div>
+            <!-- Desktop Nav -->
+            <nav class="hidden md:flex space-x-6 text-sm font-medium">
+                <a href="#explorer" class="hover:text-amber-500 transition">Market Data</a>
+                <a href="#calculator" class="hover:text-amber-500 transition">Valuation Tool</a>
+            </nav>
+            <!-- Mobile Nav Button (Simple Scroll) -->
+            <a href="#calculator" class="md:hidden bg-amber-700 text-white text-xs font-bold px-3 py-2 rounded">
+                Go to Calculator
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero / Intro -->
+    <section class="bg-white border-b border-stone-200 py-12">
+        <div class="container mx-auto px-4 max-w-5xl text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-stone-800 mb-4">Dubai Investment Yields</h2>
+            <p class="text-lg text-stone-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+                A comprehensive guide to <strong>Year's Purchase (YP)</strong> and <strong>Net Initial Yields</strong>. 
+                Use typical Q4 2024/2025 market data to estimate property values using the Income Approach.
+            </p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+                <div class="bg-stone-50 p-4 rounded-lg border border-stone-200">
+                    <div class="text-xs text-stone-500 uppercase tracking-wider">Avg Apt Yield</div>
+                    <div class="text-2xl font-bold text-amber-700">7.2%</div>
+                </div>
+                <div class="bg-stone-50 p-4 rounded-lg border border-stone-200">
+                    <div class="text-xs text-stone-500 uppercase tracking-wider">Avg Villa Yield</div>
+                    <div class="text-2xl font-bold text-stone-700">5.5%</div>
+                </div>
+                <div class="bg-stone-50 p-4 rounded-lg border border-stone-200">
+                    <div class="text-xs text-stone-500 uppercase tracking-wider">Top Sector</div>
+                    <div class="text-2xl font-bold text-blue-800">Industrial</div>
+                </div>
+                <div class="bg-stone-50 p-4 rounded-lg border border-stone-200">
+                    <div class="text-xs text-stone-500 uppercase tracking-wider">Market Phase</div>
+                    <div class="text-2xl font-bold text-green-700">Stable</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content: Market Explorer -->
+    <main id="explorer" class="flex-grow container mx-auto px-4 py-12 max-w-6xl">
+        
+        <div class="mb-8">
+            <h3 class="text-2xl font-bold text-stone-800 mb-2">Sector Analysis Explorer</h3>
+            <p class="text-stone-600">Select a property sector below to reveal specific yield ranges and community trends.</p>
+        </div>
+
+        <!-- Scrollable Tabs for Mobile -->
+        <div class="flex overflow-x-auto pb-2 border-b border-stone-300 mb-8 space-x-2 md:space-x-0">
+            <button onclick="updateView('residential_apt')" class="tab-btn active-tab px-6 py-3 text-stone-600 whitespace-nowrap hover:bg-stone-100 transition focus:outline-none" id="btn-residential_apt">Apartments</button>
+            <button onclick="updateView('residential_villa')" class="tab-btn px-6 py-3 text-stone-600 whitespace-nowrap hover:bg-stone-100 transition focus:outline-none" id="btn-residential_villa">Villas</button>
+            <button onclick="updateView('office')" class="tab-btn px-6 py-3 text-stone-600 whitespace-nowrap hover:bg-stone-100 transition focus:outline-none" id="btn-office">Office Space</button>
+            <button onclick="updateView('retail')" class="tab-btn px-6 py-3 text-stone-600 whitespace-nowrap hover:bg-stone-100 transition focus:outline-none" id="btn-retail">Retail</button>
+            <button onclick="updateView('industrial')" class="tab-btn px-6 py-3 text-stone-600 whitespace-nowrap hover:bg-stone-100 transition focus:outline-none" id="btn-industrial">Industrial</button>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left Column: Stats & Charts -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Key Metric Box -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 text-center">
+                    <h4 class="text-stone-500 font-medium uppercase text-xs tracking-widest mb-2" id="sector-title">RESIDENTIAL APARTMENTS</h4>
+                    <div class="flex justify-center items-baseline space-x-2">
+                        <span class="text-4xl font-bold text-stone-800" id="yield-range">6.0% - 8.5%</span>
+                    </div>
+                    <p class="text-sm text-stone-400 mt-1">Typical Net Yield</p>
+                    
+                    <div class="mt-4 pt-4 border-t border-stone-100">
+                        <div class="text-sm text-stone-500">Implied YP (Multiplier)</div>
+                        <div class="text-xl font-semibold text-amber-700" id="yp-range">11.76 - 16.66 YP</div>
+                    </div>
+                </div>
+
+                <!-- Chart 1: Range Visual -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200">
+                    <h5 class="text-sm font-semibold text-stone-700 mb-4">Yield Distribution (Min/Avg/Max)</h5>
+                    <div class="chart-container">
+                        <canvas id="rangeChart"></canvas>
+                    </div>
+                </div>
+
+                 <!-- Context Box -->
+                 <div class="bg-stone-50 p-5 rounded-xl border border-stone-200 text-sm leading-relaxed text-stone-600" id="market-context">
+                     <!-- Dynamic Text -->
+                 </div>
+            </div>
+
+            <!-- Right Column: Community Data & Drivers -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Community Table Section -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-lg font-bold text-stone-800">Community Yield Matrix</h4>
+                        <span class="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">Net Yields</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr>
+                                    <th class="w-1/3">Location/Zone</th>
+                                    <th>Avg Net Yield</th>
+                                    <th>Implied YP</th>
+                                    <th>Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody id="community-table-body">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Valuation Influencers -->
+                <div>
+                    <h4 class="text-lg font-bold text-stone-800 mb-3">Valuation Influencers</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="drivers-grid">
+                        <!-- Dynamic Content injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Calculator Section -->
+    <section id="calculator" class="bg-stone-900 text-stone-50 py-16">
+        <div class="container mx-auto px-4 max-w-5xl">
+            <div class="text-center mb-10">
+                <h3 class="text-2xl font-bold text-white">IVS Income Approach Valuation</h3>
+                <p class="text-stone-400 mt-2 max-w-2xl mx-auto">
+                    Calculate Market Value using the Net Income Capitalization method. 
+                    Select your property type below to auto-fill typical yields.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Input Column -->
+                <div class="lg:col-span-2 bg-stone-800 p-6 md:p-8 rounded-2xl shadow-2xl border border-stone-700">
+                    
+                    <!-- Property Type Selector -->
+                    <div class="mb-8 border-b border-stone-700 pb-6">
+                        <label class="block text-sm font-bold text-amber-500 uppercase tracking-wider mb-2">Select Property Type</label>
+                        <select id="calc-property-type" onchange="updateCalcType()" class="w-full bg-stone-700 border border-stone-600 text-white rounded-lg p-3 focus:ring-2 focus:ring-amber-500 outline-none transition">
+                            <option value="residential_apt">Residential Apartment</option>
+                            <option value="residential_villa">Residential Villa/Townhouse</option>
+                            <option value="office">Office Space</option>
+                            <option value="retail">Retail Unit</option>
+                            <option value="industrial">Industrial/Warehouse</option>
+                        </select>
+                        <p class="text-xs text-stone-400 mt-2">Auto-populates typical market yield below.</p>
+                    </div>
+
+                    <h4 class="text-white font-bold mb-6 flex items-center">
+                        <span class="bg-stone-700 px-2 py-1 rounded text-xs mr-2">Step 1</span> Operating Data
+                    </h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Gross Income -->
+                        <div class="col-span-1 md:col-span-2">
+                            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Gross Annual Rental Income (AED)</label>
+                            <input type="text" id="calc-gross" placeholder="e.g. 150,000" class="formatted-input w-full bg-stone-700 border border-stone-600 text-white rounded-lg p-3 focus:ring-2 focus:ring-amber-500 outline-none transition font-mono text-lg">
+                        </div>
+
+                        <!-- General Percentage Deduction -->
+                        <div class="col-span-1 md:col-span-2 bg-stone-700/30 p-4 rounded-lg border border-stone-600/50">
+                            <label class="block text-xs font-bold text-amber-500 uppercase tracking-wider mb-2">General Outgoings (%)</label>
+                            <div class="flex items-center space-x-3">
+                                <input type="number" id="calc-general-pct" placeholder="0" class="w-24 bg-stone-900 border border-stone-700 text-white rounded-lg p-2 text-sm focus:border-amber-500 outline-none transition text-center" oninput="calculateValuation()">
+                                <span class="text-stone-400 text-xs md:text-sm">% deduction of Gross Rent (Optional Quick Method)</span>
+                            </div>
+                        </div>
+
+                        <!-- Specific Outgoings -->
+                        <div>
+                            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Service Charges (AED)</label>
+                            <input type="text" id="calc-sc" placeholder="0" class="formatted-input w-full bg-stone-900 border border-stone-700 text-stone-300 rounded-lg p-3 text-sm focus:border-amber-500 outline-none transition">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Maintenance (AED)</label>
+                            <input type="text" id="calc-maint" placeholder="0" class="formatted-input w-full bg-stone-900 border border-stone-700 text-stone-300 rounded-lg p-3 text-sm focus:border-amber-500 outline-none transition">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Vacancy Allowance (%)</label>
+                            <input type="number" id="calc-void" placeholder="5" value="5" class="w-full bg-stone-900 border border-stone-700 text-stone-300 rounded-lg p-3 text-sm focus:border-amber-500 outline-none transition" oninput="calculateValuation()">
+                        </div>
+                    </div>
+
+                    <h4 class="text-white font-bold mb-4 mt-8 flex items-center">
+                        <span class="bg-stone-700 px-2 py-1 rounded text-xs mr-2">Step 2</span> Market Parameters
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Target Net Yield (%)</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="number" id="calc-yield" step="0.1" value="7.25" class="w-full bg-stone-700 border border-stone-600 text-white rounded-lg p-3 focus:ring-2 focus:ring-amber-500 outline-none transition text-lg font-bold" oninput="calculateValuation()">
+                            </div>
+                            <p class="text-[10px] text-stone-500 mt-1">Editable. Default based on selected type.</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Resulting YP (Multiplier)</label>
+                            <div id="calc-yp-display" class="w-full bg-stone-900/50 border border-stone-700 text-amber-400 font-mono rounded-lg p-3 text-center text-lg">
+                                13.79 YP
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result Column -->
+                <div class="bg-stone-800 p-6 md:p-8 rounded-2xl shadow-2xl border border-stone-700 flex flex-col justify-center relative overflow-hidden mt-6 lg:mt-0">
+                    <!-- Background Icon -->
+                    <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                        <svg class="w-32 h-32 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>
+                    </div>
+
+                    <div class="mb-6 pb-6 border-b border-stone-600 border-dashed">
+                        <div class="flex justify-between text-sm text-stone-400 mb-1">
+                            <span>Gross Income</span>
+                            <span id="res-gross">0 AED</span>
+                        </div>
+                        <div class="flex justify-between text-sm text-red-400 mb-1">
+                            <span>General Deduction</span>
+                            <span id="res-gen-out">- 0 AED</span>
+                        </div>
+                        <div class="flex justify-between text-sm text-red-400 mb-1">
+                            <span>Specific Expenses</span>
+                            <span id="res-specific-out">- 0 AED</span>
+                        </div>
+                        <div class="flex justify-between text-base font-bold text-white mt-2 pt-2 border-t border-stone-700">
+                            <span>Net Operating Income</span>
+                            <span id="res-net" class="text-green-400">0 AED</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-xs text-stone-500 uppercase tracking-wider mb-1">Estimated Market Value</div>
+                        <div class="text-4xl font-bold text-white tracking-tight break-words" id="res-value">AED 0</div>
+                        <div class="mt-4 text-[10px] text-stone-500 leading-tight">
+                            Calculation: Net Operating Income × YP.<br>
+                            Excludes 4% DLD transfer fees.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-stone-200 py-8 mt-auto">
+        <div class="container mx-auto px-4 text-center text-stone-500 text-sm">
+            <p>&copy; 2025 Dubai Real Estate Analytics. Data for illustrative educational purposes.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Data Source ---
+        const marketData = {
+            residential_apt: {
+                title: "Residential Apartments",
+                yieldRange: "6.0% - 8.5%",
+                minYield: 6.0,
+                maxYield: 8.5,
+                avgYield: 7.25,
+                ypRange: "11.76 - 16.66",
+                context: "Apartments offer diverse yield profiles. 'Affordable' communities consistently offer higher yields (8%+) due to lower capital values. Prime areas (Downtown, Marina) offer lower yields (5-6.5%) but higher liquidity.",
+                drivers: [
+                    { title: "Service Charges", text: "High OA fees in luxury towers significantly reduce net yields." },
+                    { title: "Holiday Homes", text: "Short-term leasing can boost gross yields by 20-30% in tourist zones." },
+                    { title: "Age of Asset", text: "Older buildings offer higher yields but risk higher maintenance costs." }
+                ],
+                communities: [
+                    { name: "International City", yield: "9.0% - 10.5%", yp: "9.5 - 11.1", trend: "Stable" },
+                    { name: "Discovery Gardens", yield: "8.0% - 9.2%", yp: "10.8 - 12.5", trend: "Rising" },
+                    { name: "Jumeirah Village Circle", yield: "7.0% - 8.2%", yp: "12.2 - 14.3", trend: "Stable" },
+                    { name: "Dubai Marina", yield: "6.2% - 7.5%", yp: "13.3 - 16.1", trend: "Compressing" },
+                    { name: "Downtown Dubai", yield: "5.5% - 6.5%", yp: "15.4 - 18.1", trend: "Stable" },
+                    { name: "Palm Jumeirah", yield: "5.0% - 6.0%", yp: "16.6 - 20.0", trend: "Compressing" }
+                ]
+            },
+            residential_villa: {
+                title: "Residential Villas/Townhouses",
+                yieldRange: "4.5% - 6.5%",
+                minYield: 4.5,
+                maxYield: 6.5,
+                avgYield: 5.5,
+                ypRange: "15.38 - 22.22",
+                context: "Villas typically offer lower yields than apartments due to higher capital entry points. However, investors benefit from lower service charges, control over land, and longer tenant tenure.",
+                drivers: [
+                    { title: "Community Maturity", text: "Established communities (Springs) command premiums, compressing yields." },
+                    { title: "Plot Size", text: "Larger plots add capital value disproportionate to rental value." },
+                    { title: "Renovation", text: "Upgraded units command significantly higher rents." }
+                ],
+                communities: [
+                    { name: "Damac Hills 2", yield: "6.0% - 7.0%", yp: "14.3 - 16.6", trend: "Rising" },
+                    { name: "Town Square / Mira", yield: "5.8% - 6.5%", yp: "15.4 - 17.2", trend: "Stable" },
+                    { name: "The Springs", yield: "5.0% - 5.8%", yp: "17.2 - 20.0", trend: "Stable" },
+                    { name: "Arabian Ranches", yield: "4.8% - 5.5%", yp: "18.2 - 20.8", trend: "Compressing" },
+                    { name: "Palm Jumeirah (Villas)", yield: "3.5% - 4.5%", yp: "22.2 - 28.5", trend: "Compressing" }
+                ]
+            },
+            office: {
+                title: "Office Spaces",
+                yieldRange: "6.5% - 9.0%",
+                minYield: 6.5,
+                maxYield: 9.0,
+                avgYield: 7.75,
+                ypRange: "11.11 - 15.38",
+                context: "Grade A spaces (DIFC, Downtown) are in short supply, commanding stable yields. Strata-owned offices in secondary locations offer higher yields but carry higher vacancy risks.",
+                drivers: [
+                    { title: "Licensing Zone", text: "Freezone (DIFC) vs. Mainland impacts tenant eligibility." },
+                    { title: "Parking Ratio", text: "Poor parking ratios severely punish rental rates." },
+                    { title: "Fitted vs Shell", text: "Fitted offices are in higher demand, reducing void periods." }
+                ],
+                communities: [
+                    { name: "Silicon Oasis (DSO)", yield: "8.5% - 9.5%", yp: "10.5 - 11.7", trend: "Stable" },
+                    { name: "JLT (Cluster O-Z)", yield: "7.5% - 8.5%", yp: "11.7 - 13.3", trend: "Rising" },
+                    { name: "Business Bay", yield: "6.8% - 7.8%", yp: "12.8 - 14.7", trend: "Rising" },
+                    { name: "DIFC", yield: "6.0% - 7.0%", yp: "14.3 - 16.6", trend: "Stable" }
+                ]
+            },
+            retail: {
+                title: "Retail (Shops/F&B)",
+                yieldRange: "5.5% - 8.0%",
+                minYield: 5.5,
+                maxYield: 8.0,
+                avgYield: 6.75,
+                ypRange: "12.50 - 18.18",
+                context: "Retail yields vary based on footfall. Mall units are often leasehold, while street retail in mixed-use communities offers accessible investment points.",
+                drivers: [
+                    { title: "Footfall", text: "The primary determinant of rental value for street retail." },
+                    { title: "E-commerce Impact", text: "Experience-based retail (F&B, salons) is more resilient." }
+                ],
+                communities: [
+                    { name: "International City", yield: "8.0% - 9.5%", yp: "10.5 - 12.5", trend: "Stable" },
+                    { name: "JLT / Marina", yield: "6.5% - 7.5%", yp: "13.3 - 15.4", trend: "Compressing" },
+                    { name: "Community Malls", yield: "7.0% - 8.0%", yp: "12.5 - 14.3", trend: "Stable" }
+                ]
+            },
+            industrial: {
+                title: "Industrial & Warehousing",
+                yieldRange: "8.0% - 12.0%",
+                minYield: 8.0,
+                maxYield: 12.0,
+                avgYield: 10.0,
+                ypRange: "8.33 - 12.50",
+                context: "Industrial assets are typically the highest yielding. The boom in e-commerce has driven demand for high-spec warehouses.",
+                drivers: [
+                    { title: "Power Load", text: "High electrical load capacity is a major value multiplier." },
+                    { title: "Eaves Height", text: "Logistics require 10m+ height for racking." }
+                ],
+                communities: [
+                    { name: "DIP (Dubai Inv Park)", yield: "9.0% - 10.5%", yp: "9.5 - 11.1", trend: "Rising" },
+                    { name: "Al Quoz", yield: "8.0% - 9.5%", yp: "10.5 - 12.5", trend: "Compressing" },
+                    { name: "JAFZA", yield: "9.5% - 11.5%", yp: "8.7 - 10.5", trend: "Stable" }
+                ]
+            }
+        };
+
+        // --- State ---
+        let currentSector = 'residential_apt';
+        let rangeChartInstance = null;
+
+        // --- Core Logic ---
+        function init() {
+            renderExplorer('residential_apt');
+            setupInputFormatters();
+            updateCalcType(); 
+        }
+
+        function updateView(sectorKey) {
+            currentSector = sectorKey;
+            
+            // UI Tab Update
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active-tab', 'text-stone-900');
+                btn.classList.add('text-stone-600');
+            });
+            const activeBtn = document.getElementById(`btn-${sectorKey}`);
+            if(activeBtn) {
+                activeBtn.classList.add('active-tab', 'text-stone-900');
+                activeBtn.classList.remove('text-stone-600');
+            }
+
+            renderExplorer(sectorKey);
+        }
+
+        function renderExplorer(key) {
+            const data = marketData[key];
+
+            // Text Updates
+            document.getElementById('sector-title').innerText = data.title.toUpperCase();
+            document.getElementById('yield-range').innerText = data.yieldRange;
+            document.getElementById('yp-range').innerText = `${data.ypRange} YP`;
+            document.getElementById('market-context').innerText = data.context;
+
+            // Render Drivers
+            const driversContainer = document.getElementById('drivers-grid');
+            driversContainer.innerHTML = '';
+            data.drivers.forEach(driver => {
+                const div = document.createElement('div');
+                div.className = 'driver-card bg-white p-4 rounded-lg border border-stone-100 shadow-sm transition-transform duration-300';
+                div.innerHTML = `
+                    <h5 class="font-bold text-amber-700 text-sm mb-1">${driver.title}</h5>
+                    <p class="text-xs text-stone-500">${driver.text}</p>
+                `;
+                driversContainer.appendChild(div);
+            });
+
+            // Render Community Table
+            const tbody = document.getElementById('community-table-body');
+            tbody.innerHTML = '';
+            if (data.communities) {
+                data.communities.forEach(comm => {
+                    const tr = document.createElement('tr');
+                    let trendColor = comm.trend === 'Rising' ? 'text-green-600' : (comm.trend === 'Compressing' ? 'text-amber-600' : 'text-stone-500');
+                    let trendIcon = comm.trend === 'Rising' ? '↑' : (comm.trend === 'Compressing' ? '↓' : '→');
+                    
+                    tr.innerHTML = `
+                        <td class="font-medium text-stone-700">${comm.name}</td>
+                        <td class="font-bold text-stone-800">${comm.yield}</td>
+                        <td class="text-stone-500 font-mono text-xs hidden md:table-cell">${comm.yp}</td>
+                        <td class="text-xs ${trendColor} font-semibold">${trendIcon} ${comm.trend}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            updateRangeChart(data);
+        }
+
+        // --- Chart ---
+        function updateRangeChart(data) {
+            const ctx = document.getElementById('rangeChart').getContext('2d');
+            if (rangeChartInstance) rangeChartInstance.destroy();
+
+            rangeChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Min Yield', 'Average', 'Max Yield'],
+                    datasets: [{
+                        label: 'Yield %',
+                        data: [data.minYield, data.avgYield, data.maxYield],
+                        backgroundColor: ['#e7e5e4', '#b45309', '#e7e5e4'],
+                        borderRadius: 4,
+                        barThickness: 40
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, max: 14, title: {display: true, text: 'Percentage (%)'} },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // --- Calculator Logic ---
+
+        // Helper: Parse comma separated string to float
+        function parseInput(val) {
+            if (!val) return 0;
+            return parseFloat(val.toString().replace(/,/g, '')) || 0;
+        }
+
+        // Helper: Format number with commas
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function setupInputFormatters() {
+            const inputs = document.querySelectorAll('.formatted-input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', (e) => {
+                    let val = e.target.value;
+                    e.target.value = val.replace(/,/g, '');
+                });
+                
+                input.addEventListener('blur', (e) => {
+                    let val = e.target.value.replace(/,/g, '');
+                    if(val && !isNaN(val)) {
+                        e.target.value = formatNumber(val);
+                    }
+                    calculateValuation();
+                });
+            });
+        }
+
+        function updateCalcType() {
+            const type = document.getElementById('calc-property-type').value;
+            const data = marketData[type];
+            if(data) {
+                document.getElementById('calc-yield').value = data.avgYield;
+            }
+            calculateValuation();
+        }
+
+        function calculateValuation() {
+            const grossRent = parseInput(document.getElementById('calc-gross').value);
+            const generalPct = parseFloat(document.getElementById('calc-general-pct').value) || 0;
+            const sc = parseInput(document.getElementById('calc-sc').value);
+            const maint = parseInput(document.getElementById('calc-maint').value);
+            const voidPct = parseFloat(document.getElementById('calc-void').value) || 0;
+            const yieldPct = parseFloat(document.getElementById('calc-yield').value) || 1;
+
+            // 1. General Deduction
+            const generalDeduction = grossRent * (generalPct / 100);
+
+            // 2. Void Allowance
+            const voidAmount = grossRent * (voidPct / 100);
+
+            // 3. Specific Ops
+            const specificOutgoings = sc + maint + voidAmount;
+
+            // 4. Net Income
+            const netIncome = grossRent - generalDeduction - specificOutgoings;
+
+            // 5. YP
+            const yp = 100 / yieldPct;
+
+            // 6. Value
+            const value = netIncome * yp;
+
+            // UI
+            const currencyFmt = new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED', maximumFractionDigits: 0 });
+
+            document.getElementById('calc-yp-display').innerText = yp.toFixed(2) + " YP";
+            document.getElementById('res-gross').innerText = currencyFmt.format(grossRent);
+            document.getElementById('res-gen-out').innerText = "-" + currencyFmt.format(generalDeduction);
+            document.getElementById('res-specific-out').innerText = "-" + currencyFmt.format(specificOutgoings);
+            
+            const netEl = document.getElementById('res-net');
+            const valEl = document.getElementById('res-value');
+
+            if (netIncome < 0) {
+                netEl.className = 'text-red-400 font-bold';
+                netEl.innerText = currencyFmt.format(netIncome);
+                valEl.innerText = "Negative Income";
+            } else {
+                netEl.className = 'text-green-400 font-bold';
+                netEl.innerText = currencyFmt.format(netIncome);
+                valEl.innerText = currencyFmt.format(value);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
